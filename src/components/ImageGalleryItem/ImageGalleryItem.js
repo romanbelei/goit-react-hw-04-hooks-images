@@ -1,98 +1,78 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Loader from '../Loader/Loader';
+import fetchImages from '../../api/api';
 import s from './ImageGalleryItem.module.css';
 
-export default class ImageGalleryItem extends Component {
-  state = {
-    pictures: [],
-    loading: false,
-    error: null,
-    // status: Status.IDLE,
-  };
-  componentDidUpdate(prevProps, prevState) {
-    const prevName = prevProps.pictureName;
-    const nextName = this.props.pictureName;
-    const prevPage = prevProps.page;
-    const nextPage = this.props.page;
-    if (prevName !== nextName || prevPage !== nextPage) {
-      if (prevName !== nextName) {
-        this.setState({ loading: true, pictures: [] });
-        this.props.showButton(false);
-      }
+export default function ImageGalleryItem({
+  pictureName,
+  page,
+  scrollOnLoadButton,
+  showButton,
+  showlargImage,
+  togleModal,
+}) {
+  const [pictures, setPictures] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (pictureName !== '') {
+      setLoading(true);
+      setPictures([]);
+      showButton(false);
       setTimeout(() => {
-        fetch(
-          `https://pixabay.com/api/?q=cat&page=1&key=25722602-ef4054fc4542d7cb871df6c01&q=${nextName}&image_type=photo&orientation=horizontal&page=${this.props.page}&per_page=12`
-        )
-          .then(response => {
-            if (response.ok) {
-              return response.json();
-            }
-            return Promise.reject(new Error(`Помилка завантаження`));
-          })
+        fetchImages(pictureName, page)
           .then(data => {
             const { hits } = data;
-            if (this.state.pictures.length > 0) {
-              this.setState(prevState => ({
-                pictures: [...prevState.pictures, ...hits],
-              }));
-            } else {
-              this.setState(prevState => ({
-                pictures: [...hits],
-              }));
+            setPictures(prevState => [...prevState, ...hits]);
+            if (page !== 1) {
+              scrollOnLoadButton();
             }
-            if (this.props.page !== 1) {
-              this.props.scrollOnLoadButton();
-            }
-            if (
-              this.state.pictures.length < 12 ||
-              this.props.page * 12 >= data.totalHits
-            ) {
-              this.props.showButton(false);
+            if (pictures.length <= 12 && page * 12 < data.totalHits) {
+              showButton(true);
             } else {
-              this.props.showButton(true);
+              showButton(false);
             }
           })
-          .catch(error => this.setState({ error }))
+          .catch(error => setError(error))
           .finally(() => {
-            this.setState({ loading: false });
+            setLoading(false);
           });
       }, 1000);
     }
-  }
+  }, [pictureName, page]);
 
-  showLargImage = e => {
-    this.state.pictures.map(p => {
+  const showLargImage = e => {
+    pictures.map(p => {
       if (Number(p.id) === Number(e.currentTarget.id)) {
-        return this.props.showlargImage(p.largeImageURL);
+        return showlargImage(p.largeImageURL);
       }
       return null;
     });
-    this.props.togleModal();
+    togleModal();
   };
 
-  render() {
-    return (
-      <>
-        {this.state.loading && <Loader />}
-        {this.state.error && <h1>{this.state.error.message}</h1>}
-        {this.state.pictures &&
-          this.state.pictures.map(p => {
-            return (
-              <li
-                key={p.id}
-                id={p.id}
-                className={s.ImageGalleryItem}
-                onClick={this.showLargImage}
-              >
-                <img
-                  className={s['ImageGalleryItem-image']}
-                  src={p.webformatURL}
-                  alt={p.tags}
-                />
-              </li>
-            );
-          })}
-      </>
-    );
-  }
+  return (
+    <>
+      {loading && <Loader />}
+      {error && <h1>{this.state.error.message}</h1>}
+      {pictures &&
+        pictures.map(p => {
+          return (
+            <li
+              key={p.id}
+              id={p.id}
+              className={s.ImageGalleryItem}
+              onClick={showLargImage}
+            >
+              <img
+                className={s['ImageGalleryItem-image']}
+                src={p.webformatURL}
+                alt={p.tags}
+              />
+            </li>
+          );
+        })}
+    </>
+  );
 }
