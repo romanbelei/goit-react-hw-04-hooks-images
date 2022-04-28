@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -6,71 +6,56 @@ import Button from './Button/Button';
 import Modal from './Modal/Modal';
 import s from './App.module.css';
 
-export default class App extends Component {
-  state = {
-    pictureName: '',
-    buttonLoadMore: false,
-    page: 1,
-    showModal: false,
-    largImage: '',
+export default function App() {
+  const [pictureName, setPictureName] = useState('');
+  const [buttonLoadMore, setButtonLoadMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [largImage, setLargImage] = useState('');
+
+  const handleFormSubmit = pictureName => {
+    setPictureName(pictureName);
   };
 
-  handleFormSubmit = pictureName => {
-    this.setState({ pictureName });
+  const showLoadMore = show => {
+    setButtonLoadMore(show);
   };
 
-  showLoadMore = show => {
-    this.setState({ buttonLoadMore: show });
+  const loadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  loadMore = () => {
-    this.setState(prevState => {
-      return {
-        page: prevState.page + 1,
-      };
-    });
+  const togleModal = () => {
+    setShowModal(prevState => !prevState);
   };
 
-  togleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const handleLargImage = ref => {
+    setLargImage(ref);
   };
 
-  handleLargImage = ref => {
-    this.setState({ largImage: ref });
-  };
-
-  scrollOnLoadButton = () => {
+  const scrollOnLoadButton = () => {
     window.scrollTo({
       top: document.documentElement.scrollHeight,
       behavior: 'smooth',
     });
   };
 
-  render() {
-    return (
-      <div className={s.App}>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery
-          pictureName={this.state.pictureName}
-          showLoad={this.showLoadMore}
-          page={this.state.page}
-          showlargImage={this.handleLargImage}
-          togleModal={this.togleModal}
-          scrollOnLoadButton={this.scrollOnLoadButton}
-        />
-        {this.state.buttonLoadMore && <Button onClickButton={this.loadMore} />}
-        {this.state.showModal && (
-          <Modal
-            onClose={this.togleModal}
-            refLargImage={this.state.largImage}
-          />
-        )}
-        <ToastContainer autoClose={2000} position="top-center" />
-      </div>
-    );
-  }
+  return (
+    <div className={s.App}>
+      <Searchbar onSubmit={handleFormSubmit} />
+      <ImageGallery
+        pictureName={pictureName}
+        showButton={showLoadMore}
+        page={page}
+        showlargImage={handleLargImage}
+        togleModal={togleModal}
+        scrollOnLoadButton={scrollOnLoadButton}
+      />
+      {buttonLoadMore && <Button onClickButton={loadMore} />}
+      {showModal && <Modal onClose={togleModal} refLargImage={largImage} />}
+      <ToastContainer autoClose={2000} position="top-center" />
+    </div>
+  );
 }
 
 // scrollOnLoadButton={this.scrollOnLoadButton}

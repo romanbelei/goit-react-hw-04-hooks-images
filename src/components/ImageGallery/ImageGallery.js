@@ -5,7 +5,7 @@ import s from './ImageGallery.module.css';
 
 function ImageGallery({
   pictureName,
-  showLoad,
+  showButton,
   page,
   showlargImage,
   togleModal,
@@ -16,7 +16,7 @@ function ImageGallery({
     <ul className={s.ImageGallery}>
       <ImageGalleryItem
         pictureName={pictureName}
-        showButton={showLoad}
+        showButton={showButton}
         page={page}
         showlargImage={showlargImage}
         togleModal={togleModal}
@@ -27,7 +27,7 @@ function ImageGallery({
   );
 }
 ImageGallery.propTypes = {
-  showLoad: PropTypes.func.isRequired,
+  showButton: PropTypes.func.isRequired,
   showlargImage: PropTypes.func.isRequired,
   togleModal: PropTypes.func.isRequired,
   scrollOnLoadButton: PropTypes.func.isRequired,
